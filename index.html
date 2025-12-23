@@ -3,194 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>World Raid - Global Predator Sync</title>
+    <title>Predator Bumi - Multiplayer Online</title>
     <style>
-        :root { --red: #ff3333; --bg: #050505; }
+        :root { --primary: #00ff00; --danger: #ff3333; --bg: #050505; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body { 
-            margin: 0; background: var(--bg); color: white; 
-            font-family: 'Segoe UI', sans-serif; text-align: center; 
-            overflow: hidden; transition: background 0.2s;
+            margin: 0; background: var(--bg); color: #eee; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; flex-direction: column; align-items: center;
         }
+
+        .container { width: 100%; max-width: 400px; padding: 20px; text-align: center; }
         
-        .header { background: linear-gradient(to bottom, #500, #000); padding: 15px 10px; border-bottom: 2px solid var(--red); }
-        #globalPop { font-size: 2.8rem; color: var(--red); font-weight: 900; text-shadow: 0 0 15px red; margin: 5px 0; }
-        .user-meta { font-size: 0.75rem; color: #888; }
+        /* Bar Status Atas */
+        .header-multi { display: flex; justify-content: space-between; width: 100%; font-size: 0.7rem; color: #00ff00; margin-bottom: 15px; border-bottom: 1px solid #003300; padding-bottom: 5px; }
 
-        .stage { height: 280px; display: flex; align-items: center; justify-content: center; position: relative; }
-        #targetImg { 
-            width: 190px; height: 190px; border-radius: 50%; 
-            transition: transform 0.05s; filter: drop-shadow(0 0 20px rgba(255,0,0,0.3));
-            z-index: 5;
-        }
-
-        .btn-attack { 
-            width: 85%; max-width: 300px; padding: 20px; font-size: 1.6rem; 
-            font-weight: 900; background: var(--red); color: white; 
-            border: none; border-radius: 50px; cursor: pointer; 
-            box-shadow: 0 6px #600; outline: none; margin-bottom: 10px;
-        }
-        .btn-attack:active { transform: translateY(3px); box-shadow: 0 3px #200; }
-
-        #attackFeed { height: 100px; overflow: hidden; padding: 10px; font-size: 0.8rem; background: #111; margin: 10px auto; width: 90%; max-width: 380px; border-radius: 15px; border: 1px solid #333; }
-        .feed-entry { padding: 4px 0; border-bottom: 1px solid #1a1a1a; text-align: left; animation: fadeIn 0.3s ease; }
+        /* Box Skor Global */
+        .global-box { background: #000; padding: 20px; border-radius: 25px; border: 2px solid #004400; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+        #globalPop { color: var(--primary); font-weight: 900; font-size: 2.2rem; display: block; margin: 10px 0; text-shadow: 0 0 10px rgba(0,255,0,0.3); }
         
-        /* ANIMASI SYNC */
-        .shake-hit { animation: shake-fast 0.15s infinite; filter: sepia(1) saturate(10) hue-rotate(-50deg) !important; }
-        @keyframes shake-fast {
-            0% { transform: translate(3px, 3px); }
-            50% { transform: translate(-3px, -2px); }
-            100% { transform: translate(3px, -3px); }
+        /* Tombol Utama */
+        .btn-multi { 
+            width: 100%; padding: 40px 10px; font-size: 2rem; font-weight: 900; color: #fff; 
+            background: linear-gradient(135deg, #006400, #002200); border: none; border-radius: 30px; 
+            cursor: pointer; box-shadow: 0 6px #001100; outline: none; transition: 0.1s;
         }
+        .btn-multi:active { transform: translateY(4px); box-shadow: 0 2px #000; }
 
-        .earth-explode { animation: explode-out 2s forwards !important; }
-        @keyframes explode-out {
-            0% { transform: scale(1); filter: brightness(1); }
-            20% { transform: scale(1.5); filter: brightness(20); }
-            100% { transform: scale(0); opacity: 0; filter: blur(40px); }
-        }
+        /* Stats Player */
+        .player-stats { background: #111; padding: 15px; border-radius: 15px; margin-top: 20px; border: 1px solid #222; text-align: left; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
 
-        .dmg-text {
-            position: absolute; color: #ff3333; font-weight: 900; font-size: 2rem;
-            pointer-events: none; animation: float-up 0.8s ease-out forwards;
-            z-index: 100; text-shadow: 2px 2px 0px black;
+        /* Tombol Navigasi - Anti Terabas */
+        .btn-back { 
+            width: 100%; padding: 14px; margin-top: 15px; cursor: pointer; 
+            background: #222; color: #fff; border: 2px solid #444; 
+            border-radius: 12px; font-weight: bold; font-size: 0.9rem;
+            display: block; text-decoration: none; text-align: center;
         }
-        @keyframes float-up {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-130px) scale(1.5); }
-        }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .back-link { display: inline-block; margin: 10px 0; color: #444; text-decoration: none; font-size: 0.8rem; }
+        .btn-back:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* Leaderboard */
+        .leaderboard { margin-top: 25px; background: #000; padding: 15px; border-radius: 20px; border: 1px solid #111; }
+        .entry { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #111; font-size: 0.8rem; }
+        .me { color: #ffd700; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<audio id="sndExplode" src="https://www.soundjay.com/buttons/sounds/bomb-02.mp3"></audio>
+<div class="container">
+    <div class="header-multi">
+        <span>PLAYER: <b id="pName">---</b></span>
+        <span>STATUS: <b id="status">SINKRONISASI...</b></span>
+    </div>
 
-<div class="header">
-    <small>POPULASI DUNIA</small>
-    <div id="globalPop">8.000.000.000</div>
-    <div class="user-meta">Predator: <b id="pName" style="color:white">---</b> | Power: <b id="pPower" style="color:#0f0">1</b></div>
+    <div class="global-box">
+        <small style="color:#008800; letter-spacing: 1px;">POPULASI DUNIA (GLOBAL)</small>
+        <span id="globalPop">0</span>
+        <div style="font-size: 0.8rem; color: #666;">Semua pemain menyerang target yang sama!</div>
+    </div>
+
+    <button class="btn-multi" id="attackBtn">SERANG!</button>
+
+    <div class="player-stats">
+        <div class="stat-row"><span>💰 Koin Saya:</span> <b id="myCoins">0</b></div>
+        <div class="stat-row"><span>⚔️ Power Serang:</span> <b id="myPower">1</b></div>
+    </div>
+
+    <a href="index.html" class="btn-back" id="navSolo">⬅️ KEMBALI KE SOLO</a>
+
+    <div class="leaderboard">
+        <h3 style="margin: 0 0 10px 0; color: var(--primary); font-size: 0.9rem;">🏆 TOP PREDATOR ONLINE</h3>
+        <div id="multiList">Memuat skor...</div>
+    </div>
 </div>
-
-<div class="stage" id="stage">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png" id="targetImg">
-</div>
-
-<button class="btn-attack" id="raidBtn">GIGIT BUMI!</button>
-
-<div id="attackFeed"></div>
-
-<a href="https://faqih-roda.vercel.app/" class="back-link">← KEMBALI KE MENU</a>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc, setDoc, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyDF7Eg437poCL4J4OShMFtm2N6GQtnu01w",
-        authDomain: "multiplayer-5e98b.firebaseapp.com",
-        projectId: "multiplayer-5e98b",
-        storageBucket: "multiplayer-5e98b.firebasestorage.app",
-        messagingSenderId: "549080338588",
-        appId: "1:549080338588:web:bac83f2ffbc77f47f9dd59"
+        apiKey: "AIzaSyD3tna4rUSr_FH0eb08aI3AX3Z-fVcqaj8",
+        authDomain: "fruitsmasmaster.firebaseapp.com",
+        projectId: "fruitsmasmaster",
+        storageBucket: "fruitsmasmaster.firebasestorage.app",
+        messagingSenderId: "673530855742",
+        appId: "1:673530855742:web:ac1395bda6c68f764cac6f"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const predatorName = localStorage.getItem('solo_uid') || "Predator";
-    const myPower = parseInt(localStorage.getItem('last_power')) || 1;
-    let localLastHit = 0;
-    let isExploding = false;
+    // --- AUDIO SYSTEM (Sesuai Request) ---
+    const sfxAttack = new Audio('https://assets.mixkit.co/active_storage/sfx/2296/2296-preview.mp3'); 
+    const sfxNav = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    const bgmMulti = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/descent/background%20music.mp3');
+    bgmMulti.loop = true;
+    bgmMulti.volume = 0.4;
 
-    // Tampilkan Nama & Power
-    document.getElementById('pName').innerText = predatorName;
-    document.getElementById('pPower').innerText = myPower.toLocaleString();
+    let muteTimeout;
 
-    const globalRef = doc(db, "world", "earth");
-
-    // Fungsi Munculkan Angka Melayang
-    function spawnDmg(dmg) {
-        const t = document.createElement('div');
-        t.className = 'dmg-text'; t.innerText = "-"+dmg.toLocaleString();
-        t.style.left = "50%"; t.style.top = "40%";
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 600);
+    function playActionMulti(sfx) {
+        sfx.currentTime = 0;
+        sfx.play();
+        bgmMulti.muted = true; // MATI PAS KLIK
+        clearTimeout(muteTimeout);
+        muteTimeout = setTimeout(() => { bgmMulti.muted = false; }, 500); // NYALA LAGI SETELAH 0.5s
     }
 
-    // LISTENER (Satu-satunya koneksi ke Firebase)
+    document.addEventListener('click', () => { if (bgmMulti.paused) bgmMulti.play(); }, { once: true });
+
+    // --- MULTIPLAYER LOGIC ---
+    const deviceId = localStorage.getItem('solo_uid') || "GUEST_" + Math.floor(Math.random()*1000);
+    document.getElementById('pName').innerText = deviceId;
+
+    let myLocalData = { coins: 0, power: 1 };
+
+    // 1. Monitor Populasi Global (Real-time)
+    const globalRef = doc(db, "game", "world_stats");
     onSnapshot(globalRef, (snap) => {
-        if(!snap.exists()) return;
-        const d = snap.data();
-        const earthImg = document.getElementById('targetImg');
-        
-        // Update Angka Populasi
-        document.getElementById('globalPop').innerText = d.population.toLocaleString('id-ID');
-
-        // 1. SYNC ANIMASI HIT (Muncul di semua perangkat)
-        if (d.last_hit && d.last_hit !== localLastHit) {
-            localLastHit = d.last_hit;
-            earthImg.classList.add('shake-hit');
-            document.body.style.backgroundColor = "#300";
-            spawnDmg(d.last_dmg || 0);
-            
-            // Tampilkan Teks Riwayat Sementara
-            if(d.last_name) {
-                const feed = document.getElementById('attackFeed');
-                feed.innerHTML = `<div class="feed-entry">💀 <b>${d.last_name}</b> baru saja menggigit!</div>`;
-                // Hilangkan teks dari layar setelah 3 detik (di sisi klien saja)
-                setTimeout(() => { feed.innerHTML = ""; }, 3000);
-            }
-
-            setTimeout(() => {
-                earthImg.classList.remove('shake-hit');
-                document.body.style.backgroundColor = "#050505";
-            }, 100);
-        }
-
-        // 2. SYNC LEDAKAN
-        if (d.population <= 0 && !isExploding) {
-            isExploding = true;
-            earthImg.classList.add('earth-explode');
-            document.body.style.backgroundColor = "white";
-            setTimeout(() => {
-                updateDoc(globalRef, { 
-                    population: 8000000000, 
-                    last_hit: 0, 
-                    last_name: "", 
-                    last_dmg: 0 
-                });
-                earthImg.classList.remove('earth-explode');
-                document.body.style.backgroundColor = "#050505";
-                isExploding = false;
-            }, 2000);
+        if (snap.exists()) {
+            document.getElementById('globalPop').innerText = Math.floor(snap.data().population).toLocaleString('id-ID');
+            document.getElementById('status').innerText = "ONLINE";
+        } else {
+            setDoc(globalRef, { population: 8000000000 });
         }
     });
 
-    // FUNGSI GIGIT (Menimpa data, bukan menambah)
-    document.getElementById('raidBtn').onclick = async () => {
-        if (isExploding) return;
-        
+    // 2. Monitor Data Pribadi
+    const playerRef = doc(db, "players", deviceId);
+    onSnapshot(playerRef, (snap) => {
+        if (snap.exists()) {
+            const d = snap.data();
+            myLocalData.coins = d.consumed || 0;
+            myLocalData.power = d.clickPower || 1;
+            document.getElementById('myCoins').innerText = Math.floor(myLocalData.coins).toLocaleString('id-ID');
+            document.getElementById('myPower').innerText = myLocalData.power;
+        }
+    });
+
+    // 3. Monitor Leaderboard Global
+    const q = query(collection(db, "players"), orderBy("consumed", "desc"), limit(5));
+    onSnapshot(q, (snap) => {
+        const list = document.getElementById('multiList');
+        list.innerHTML = "";
+        snap.forEach(d => {
+            const p = d.data();
+            list.innerHTML += `<div class="entry ${d.id === deviceId ? 'me' : ''}">
+                <span>${d.id}</span>
+                <span>💰 ${Math.floor(p.consumed || 0).toLocaleString()}</span>
+            </div>`;
+        });
+    });
+
+    // --- ATTACK ACTION ---
+    document.getElementById('attackBtn').onclick = async () => {
+        playActionMulti(sfxAttack);
+        if(navigator.vibrate) navigator.vibrate(30);
+
         try {
-            // Kita cuma UPDATE 1 dokumen yang sama terus-menerus
-            // Ini tidak akan bikin Firebase penuh karena filenya cuma satu
-            await updateDoc(globalRef, { 
-                population: increment(-myPower),
-                last_hit: Date.now(),
-                last_dmg: myPower,
-                last_name: predatorName
-            });
-
-            // TRICK: Hapus jejak nama di Firebase setelah 5 detik
-            // Biar dokumen 'earth' kembali bersih/kosong namanya
-            setTimeout(async () => {
-                await updateDoc(globalRef, { last_name: "" });
-            }, 5000);
-
-        } catch (e) { console.error("Koneksi sibuk!"); }
+            // Update Populasi Dunia (Minus) & Update Koin Player (Plus)
+            await updateDoc(globalRef, { population: increment(-myLocalData.power) });
+            await updateDoc(playerRef, { consumed: increment(myLocalData.power) });
+        } catch (e) {
+            console.error("Gagal menyerang:", e);
+        }
     };
-</script>
 
+    // --- NAVIGASI ---
+    document.getElementById('navSolo').onclick = (e) => {
+        e.preventDefault();
+        playActionMulti(sfxNav);
+        setTimeout(() => { window.location.href = 'index.html'; }, 450);
+    };
+
+</script>
 </body>
 </html>
