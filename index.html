@@ -3,157 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Predator Bumi - WORLD RAID</title>
+    <title>World Raid - Live Feed</title>
     <style>
-        :root { --primary: #ff3333; --secondary: #00e600; --accent: #ffd700; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: #eee; font-family: 'Segoe UI', sans-serif; text-align: center; overflow-x: hidden; }
+        :root { --red: #ff3333; --bg: #050505; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; }
         
-        .raid-header { background: linear-gradient(to bottom, #400, #000); padding: 30px 20px; border-bottom: 3px solid var(--primary); }
-        .live-count { font-size: 2.8rem; font-weight: 900; color: var(--primary); text-shadow: 0 0 25px rgba(255,0,0,0.7); margin: 10px 0; font-family: monospace; }
+        .header { background: linear-gradient(to bottom, #500, #000); padding: 25px 10px; border-bottom: 2px solid var(--red); }
+        #globalPop { font-size: 3rem; color: var(--red); font-weight: 900; text-shadow: 0 0 15px red; margin: 10px 0; }
         
-        .container { padding: 15px; max-width: 450px; margin: auto; }
+        #targetImg { width: 150px; height: 150px; border-radius: 50%; margin: 20px auto; display: block; transition: transform 0.05s; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+        #targetImg:active { transform: scale(0.9); }
+
+        .btn-attack { width: 80%; max-width: 300px; padding: 20px; font-size: 1.5rem; font-weight: 900; background: var(--red); color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 6px #600; outline: none; }
+        .btn-attack:active { transform: translateY(3px); box-shadow: 0 3px #200; }
+
+        /* Style untuk Riwayat Serangan (Live Feed) */
+        .feed-container { background: #111; margin: 25px auto; width: 90%; max-width: 380px; border-radius: 15px; border: 1px solid #333; overflow: hidden; }
+        .feed-title { background: #222; padding: 8px; font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        #attackFeed { height: 150px; overflow-y: hidden; padding: 10px; display: flex; flex-direction: column; }
         
-        #raidBtn { 
-            width: 200px; height: 200px; border-radius: 50%; border: 8px solid #300;
-            background: radial-gradient(#ff0000, #800); color: white;
-            font-size: 1.8rem; font-weight: 900; cursor: pointer;
-            box-shadow: 0 0 40px rgba(255,0,0,0.4); outline: none;
-            transition: transform 0.05s, box-shadow 0.2s; margin: 25px 0;
-            text-transform: uppercase;
-        }
-        #raidBtn:active { transform: scale(0.92); box-shadow: 0 0 10px rgba(255,0,0,0.8); }
-
-        .player-info { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #333; display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .info-box span { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; }
-        .info-box b { font-size: 1.1rem; color: var(--accent); }
-
-        .activity-feed { 
-            background: #000; height: 100px; border-radius: 12px; 
-            border: 1px solid #222; overflow: hidden; text-align: left;
-            padding: 10px; font-size: 0.8rem; position: relative;
-        }
-        .feed-item { padding: 4px 0; border-bottom: 1px solid #111; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-
-        .btn-nav { background: #222; color: #ccc; border: 1px solid #444; padding: 12px 20px; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; width: 100%; }
+        .feed-entry { font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid #1a1a1a; text-align: left; animation: fadeIn 0.3s ease; }
+        .feed-entry b { color: var(--red); }
+        .feed-entry i { color: #555; font-size: 0.7rem; float: right; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .back-btn { display: inline-block; margin: 20px 0; color: #666; text-decoration: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-<div class="raid-header">
-    <small style="color: var(--accent); letter-spacing: 3px; font-weight: bold;">🌍 GLOBAL WORLD RAID</small>
-    <div class="live-count" id="globalPop">8.000.000.000</div>
-    <div style="font-size: 0.7rem; color: #aaa;">POPULASI BERSAMA - SEMUA PEMAIN</div>
+<div class="header">
+    <small>POPULASI DUNIA SAAT INI</small>
+    <div id="globalPop">8.000.000.000</div>
+    <div style="font-size: 0.8rem; color: #888;">Predator: <b id="pName">---</b> | Power: <b id="pPower" style="color:#0f0">1</b></div>
 </div>
 
-<div class="container">
-    <div class="player-info">
-        <div class="info-box"><span>Identitas</span><b id="myId">-</b></div>
-        <div class="info-box"><span>Click Power</span><b id="myPower">1</b></div>
-    </div>
+<img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png" id="targetImg">
 
-    <button id="raidBtn">GIGIT</button>
+<button class="btn-attack" id="raidBtn">SERANG!</button>
 
-    <div class="activity-feed" id="feed">
-        <div class="feed-item" style="color: var(--secondary);">Berhasil tersambung ke World Hub...</div>
-    </div>
-
-    <button class="btn-nav" onclick="window.history.back()">KEMBALI KE UPGRADE 🛠️</button>
+<div class="feed-container">
+    <div class="feed-title">Riwayat Serangan Global</div>
+    <div id="attackFeed"></div>
 </div>
+
+<a href="index.html" class="back-btn">← KEMBALI KE SOLO</a>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment, collection, addDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-    // PAKAI CONFIG PUNYAMU
     const firebaseConfig = {
         apiKey: "AIzaSyDF7Eg437poCL4J4OShMFtm2N6GQtnu01w",
         authDomain: "multiplayer-5e98b.firebaseapp.com",
         projectId: "multiplayer-5e98b",
         storageBucket: "multiplayer-5e98b.firebasestorage.app",
         messagingSenderId: "549080338588",
-        appId: "1:549080338588:web:bac83f2ffbc77f47f9dd59",
-        measurementId: "G-3W4V3ZT3NF"
+        appId: "1:549080338588:web:bac83f2ffbc77f47f9dd59"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const deviceId = localStorage.getItem('pdr_uid_v2') || 'USER-' + Math.random().toString(36).substr(2, 4).toUpperCase();
-    document.getElementById('myId').innerText = deviceId;
+    // Ambil Data dari LocalStorage
+    const predatorName = localStorage.getItem('solo_uid') || "Anonymous";
+    const myPower = parseInt(localStorage.getItem('last_power')) || 1;
 
-    let myPower = 1;
+    document.getElementById('pName').innerText = predatorName;
+    document.getElementById('pPower').innerText = myPower;
+
     const globalRef = doc(db, "world", "earth");
-    const playerRef = doc(db, "players", deviceId);
 
-    // 1. Ambil Power Pemain
-    async function loadStats() {
-        const snap = await getDoc(playerRef);
-        if (snap.exists()) {
-            myPower = snap.data().clickPower || 1;
-            document.getElementById('myPower').innerText = myPower.toLocaleString();
-        }
-    }
-
-    // 2. Inisialisasi Populasi Dunia jika kosong
-    async function initWorld() {
-        const snap = await getDoc(globalRef);
-        if (!snap.exists()) {
-            await setDoc(globalRef, { population: 8000000000 });
-        }
-    }
-
-    // 3. Monitor Populasi Global (Real-time)
-    onSnapshot(globalRef, (d) => {
-        if (d.exists()) {
-            const currentPop = d.data().population;
-            document.getElementById('globalPop').innerText = Math.max(0, currentPop).toLocaleString('id-ID');
+    // 1. Monitor Populasi Global
+    onSnapshot(globalRef, (snap) => {
+        if(snap.exists()) {
+            document.getElementById('globalPop').innerText = snap.data().population.toLocaleString('id-ID');
         }
     });
 
-    // 4. Activity Feed
-    function addFeed(msg, color = "#aaa") {
-        const f = document.getElementById('feed');
-        const item = document.createElement('div');
-        item.className = 'feed-item';
-        item.style.color = color;
-        item.innerText = msg;
-        f.prepend(item);
-        if (f.childNodes.length > 4) f.lastChild.remove();
-    }
+    // 2. Monitor Live Feed (Riwayat Serangan)
+    const qFeed = query(collection(db, "logs"), orderBy("time", "desc"), limit(5));
+    onSnapshot(qFeed, (snap) => {
+        const feedEl = document.getElementById('attackFeed');
+        feedEl.innerHTML = "";
+        snap.forEach(d => {
+            const log = d.data();
+            const div = document.createElement('div');
+            div.className = 'feed-entry';
+            div.innerHTML = `<span>⚡ <b>${log.name}</b> menyerang <b>-${log.dmg.toLocaleString()}</b></span>`;
+            feedEl.appendChild(div);
+        });
+    });
 
-    // 5. Tombol Serang Multiplayer
+    // 3. Fungsi Serang
     document.getElementById('raidBtn').onclick = async () => {
-        if (navigator.vibrate) navigator.vibrate(50);
+        if(navigator.vibrate) navigator.vibrate(30);
         
         try {
-            // Kurangi populasi dunia
-            await updateDoc(globalRef, { population: increment(-myPower) });
+            // Kurangi populasi global
+            updateDoc(globalRef, { population: increment(-myPower) });
             
-            // Tambahkan skor ke data pribadi (Sync)
-            await updateDoc(playerRef, { 
-                consumed: increment(myPower),
-                lastUpdate: Date.now()
+            // Kirim riwayat serangan ke koleksi 'logs'
+            addDoc(collection(db, "logs"), {
+                name: predatorName,
+                dmg: myPower,
+                time: serverTimestamp()
             });
-
-            addFeed(`GIGITAN TERKIRIM! -${myPower}`, "#00e600");
-        } catch (e) {
-            addFeed("Gagal mengirim serangan...", "#ff3333");
-        }
+        } catch (e) { console.error("Gagal menyerang"); }
     };
-
-    // Deteksi aksi pemain lain (simulasi/real)
-    let lastPop = 0;
-    onSnapshot(globalRef, (d) => {
-        const newPop = d.data().population;
-        if(lastPop !== 0 && newPop < lastPop - myPower) {
-            addFeed("Predator lain sedang menyerang! ⚔️", "#ffd700");
-        }
-        lastPop = newPop;
-    });
-
-    loadStats();
-    initWorld();
 </script>
 </body>
 </html>
