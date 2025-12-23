@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>World Raid - Global Predator</title>
+    <title>World Raid - Global Predator Sync</title>
     <style>
         :root { --red: #ff3333; --bg: #050505; }
         body { 
             margin: 0; background: var(--bg); color: white; 
             font-family: 'Segoe UI', sans-serif; text-align: center; 
-            overflow: hidden; transition: background 0.3s;
+            overflow: hidden; transition: background 0.2s;
         }
         
-        /* Header & Stats */
         .header { background: linear-gradient(to bottom, #500, #000); padding: 15px 10px; border-bottom: 2px solid var(--red); }
         #globalPop { font-size: 2.8rem; color: var(--red); font-weight: 900; text-shadow: 0 0 15px red; margin: 5px 0; }
-        .user-meta { font-size: 0.75rem; color: #888; margin-top: 5px; }
+        .user-meta { font-size: 0.75rem; color: #888; }
 
-        /* Stage Bumi */
         .stage { height: 280px; display: flex; align-items: center; justify-content: center; position: relative; }
         #targetImg { 
             width: 190px; height: 190px; border-radius: 50%; 
@@ -25,7 +23,6 @@
             z-index: 5;
         }
 
-        /* UI Serang */
         .btn-attack { 
             width: 85%; max-width: 300px; padding: 20px; font-size: 1.6rem; 
             font-weight: 900; background: var(--red); color: white; 
@@ -34,16 +31,10 @@
         }
         .btn-attack:active { transform: translateY(3px); box-shadow: 0 3px #200; }
 
-        /* Feed Riwayat */
-        .feed-container { background: #111; margin: 10px auto; width: 90%; max-width: 380px; border-radius: 15px; border: 1px solid #333; overflow: hidden; }
-        #attackFeed { height: 100px; overflow-y: hidden; padding: 10px; display: flex; flex-direction: column; }
-        .feed-entry { font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid #1a1a1a; text-align: left; animation: fadeIn 0.3s ease; }
-        .feed-entry b { color: var(--red); }
-
-        /* --- ANIMASI GLOBAL --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; } }
-
-        /* Guncang Pas Gigit */
+        #attackFeed { height: 100px; overflow: hidden; padding: 10px; font-size: 0.8rem; background: #111; margin: 10px auto; width: 90%; max-width: 380px; border-radius: 15px; border: 1px solid #333; }
+        .feed-entry { padding: 4px 0; border-bottom: 1px solid #1a1a1a; text-align: left; animation: fadeIn 0.3s ease; }
+        
+        /* ANIMASI SYNC */
         .shake-hit { animation: shake-fast 0.15s infinite; filter: sepia(1) saturate(10) hue-rotate(-50deg) !important; }
         @keyframes shake-fast {
             0% { transform: translate(3px, 3px); }
@@ -51,15 +42,13 @@
             100% { transform: translate(3px, -3px); }
         }
 
-        /* Efek Meledak Sadis (Global Sync) */
         .earth-explode { animation: explode-out 2s forwards !important; }
         @keyframes explode-out {
             0% { transform: scale(1); filter: brightness(1); }
             20% { transform: scale(1.5); filter: brightness(20); }
-            100% { transform: scale(0); opacity: 0; filter: brightness(30) blur(40px); }
+            100% { transform: scale(0); opacity: 0; filter: blur(40px); }
         }
 
-        /* Angka Melayang */
         .dmg-text {
             position: absolute; color: #ff3333; font-weight: 900; font-size: 2rem;
             pointer-events: none; animation: float-up 0.8s ease-out forwards;
@@ -67,9 +56,10 @@
         }
         @keyframes float-up {
             0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-130px) scale(1.6); }
+            100% { opacity: 0; transform: translateY(-130px) scale(1.5); }
         }
-
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .back-link { display: inline-block; margin: 10px 0; color: #444; text-decoration: none; font-size: 0.8rem; }
     </style>
 </head>
@@ -78,24 +68,20 @@
 <audio id="sndExplode" src="https://www.soundjay.com/buttons/sounds/bomb-02.mp3"></audio>
 
 <div class="header">
-    <small style="letter-spacing: 2px;">POPULASI DUNIA</small>
+    <small>POPULASI DUNIA</small>
     <div id="globalPop">8.000.000.000</div>
-    <div class="user-meta">
-        Predator: <b id="pName" style="color:white">---</b> | Gigi: <b id="pPower" style="color:#0f0">1</b>
-    </div>
+    <div class="user-meta">Predator: <b id="pName" style="color:white">---</b> | Power: <b id="pPower" style="color:#0f0">1</b></div>
 </div>
 
 <div class="stage" id="stage">
     <img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png" id="targetImg">
 </div>
 
-<button class="btn-attack" id="raidBtn">GIGIT SEKARANG!</button>
+<button class="btn-attack" id="raidBtn">GIGIT BUMI!</button>
 
-<div class="feed-container">
-    <div id="attackFeed"></div>
-</div>
+<div id="attackFeed"></div>
 
-<a href="https://faqih-roda.vercel.app/" class="back-link">← KEMBALI</a>
+<a href="https://faqih-roda.vercel.app/" class="back-link">← KEMBALI KE MENU</a>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -113,94 +99,92 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const predatorName = localStorage.getItem('solo_uid') || "Predator_X";
+    const predatorName = localStorage.getItem('solo_uid') || "Guest_Predator";
     const myPower = parseInt(localStorage.getItem('last_power')) || 1;
     let isExploding = false;
+    let localLastHit = 0;
 
     document.getElementById('pName').innerText = predatorName;
     document.getElementById('pPower').innerText = myPower.toLocaleString();
 
     const globalRef = doc(db, "world", "earth");
 
-    // 1. Fungsi Floating Damage
     function spawnDamage(dmg) {
         const text = document.createElement('div');
         text.className = 'dmg-text';
         text.innerText = "-" + dmg.toLocaleString();
-        text.style.left = (window.innerWidth / 2 + (Math.random() * 100 - 50)) + "px";
-        text.style.top = "40%";
+        text.style.left = (window.innerWidth / 2 + (Math.random() * 80 - 40)) + "px";
+        text.style.top = "45%";
         document.body.appendChild(text);
         setTimeout(() => text.remove(), 800);
     }
 
-    // 2. Listener Utama (Global Sync Animation)
+    // LISTENER UTAMA (Sync Hit & Ledakan)
     onSnapshot(globalRef, (snap) => {
         if(snap.exists()) {
-            const pop = snap.data().population;
-            const displayEl = document.getElementById('globalPop');
+            const d = snap.data();
             const earthImg = document.getElementById('targetImg');
-            
-            displayEl.innerText = pop.toLocaleString('id-ID');
+            document.getElementById('globalPop').innerText = d.population.toLocaleString('id-ID');
 
-            // DETEKSI KEHANCURAN (Muncul di semua perangkat sekaligus)
-            if (pop <= 0 && !isExploding) {
+            // 1. ANIMASI GIGIT SINKRON (Muncul di semua perangkat)
+            if (d.last_hit && d.last_hit !== localLastHit) {
+                localLastHit = d.last_hit;
+                earthImg.classList.add('shake-hit');
+                document.body.style.backgroundColor = "#300";
+                if(d.last_dmg) spawnDamage(d.last_dmg);
+                
+                setTimeout(() => {
+                    earthImg.classList.remove('shake-hit');
+                    document.body.style.backgroundColor = "#050505";
+                }, 150);
+            }
+
+            // 2. LEDAKAN SINKRON
+            if (d.population <= 0 && !isExploding) {
                 isExploding = true;
                 earthImg.classList.add('earth-explode');
                 document.body.style.backgroundColor = "white"; 
                 document.getElementById('sndExplode').play();
-                
                 if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
 
                 setTimeout(() => {
-                    // Reset dilakukan oleh sistem/salah satu pemain
-                    updateDoc(globalRef, { population: 8000000000 });
+                    updateDoc(globalRef, { population: 8000000000, last_hit: 0 });
                     earthImg.classList.remove('earth-explode');
                     document.body.style.backgroundColor = "#050505";
                     isExploding = false;
-                    alert("DUNIA PUNAH! Invasi Predator dimulai kembali.");
+                    alert("BUMI HANCUR! Memulai invasi baru...");
                 }, 3000);
             }
         }
     });
 
-    // 3. Monitor Feed Serangan
+    // Feed Log Serangan
     const qFeed = query(collection(db, "logs"), orderBy("time", "desc"), limit(4));
     onSnapshot(qFeed, (snap) => {
         const feedEl = document.getElementById('attackFeed');
         feedEl.innerHTML = "";
-        snap.forEach(d => {
-            const log = d.data();
-            const div = document.createElement('div');
-            div.className = 'feed-entry';
-            div.innerHTML = `<span>⚡ <b>${log.name}</b> menggigit <b>-${log.dmg.toLocaleString()}</b></span>`;
-            feedEl.appendChild(div);
+        snap.forEach(doc => {
+            const log = doc.data();
+            feedEl.innerHTML += `<div class="feed-entry">🔥 <b>${log.name}</b> gigit <b>-${log.dmg.toLocaleString()}</b></div>`;
         });
     });
 
-    // 4. Fungsi Klik Serang
+    // Fungsi Klik Serang
     document.getElementById('raidBtn').onclick = async () => {
-        if (isExploding) return; // Jangan serang pas lagi meledak
-
-        const earthImg = document.getElementById('targetImg');
-        earthImg.classList.add('shake-hit');
-        document.body.style.backgroundColor = "#200";
-        spawnDamage(myPower);
-        
-        if(navigator.vibrate) navigator.vibrate(40);
-
-        setTimeout(() => {
-            earthImg.classList.remove('shake-hit');
-            document.body.style.backgroundColor = "#050505";
-        }, 150);
-
+        if (isExploding) return;
         try {
-            updateDoc(globalRef, { population: increment(-myPower) });
-            addDoc(collection(db, "logs"), {
+            // Update DB memicu onSnapshot di semua perangkat
+            await updateDoc(globalRef, { 
+                population: increment(-myPower),
+                last_hit: Date.now(),
+                last_dmg: myPower
+            });
+            await addDoc(collection(db, "logs"), {
                 name: predatorName,
                 dmg: myPower,
                 time: serverTimestamp()
             });
-        } catch (e) { console.error("Database busy"); }
+        } catch (e) { console.log("Lagi rame!"); }
     };
 </script>
 </body>
