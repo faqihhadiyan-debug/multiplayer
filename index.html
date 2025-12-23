@@ -85,7 +85,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, increment, collection, addDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDF7Eg437poCL4J4OShMFtm2N6GQtnu01w",
@@ -99,93 +99,98 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const predatorName = localStorage.getItem('solo_uid') || "Guest_Predator";
+    const predatorName = localStorage.getItem('solo_uid') || "Predator";
     const myPower = parseInt(localStorage.getItem('last_power')) || 1;
-    let isExploding = false;
     let localLastHit = 0;
+    let isExploding = false;
 
+    // Tampilkan Nama & Power
     document.getElementById('pName').innerText = predatorName;
     document.getElementById('pPower').innerText = myPower.toLocaleString();
 
     const globalRef = doc(db, "world", "earth");
 
-    function spawnDamage(dmg) {
-        const text = document.createElement('div');
-        text.className = 'dmg-text';
-        text.innerText = "-" + dmg.toLocaleString();
-        text.style.left = (window.innerWidth / 2 + (Math.random() * 80 - 40)) + "px";
-        text.style.top = "45%";
-        document.body.appendChild(text);
-        setTimeout(() => text.remove(), 800);
+    // Fungsi Munculkan Angka Melayang
+    function spawnDmg(dmg) {
+        const t = document.createElement('div');
+        t.className = 'dmg-text'; t.innerText = "-"+dmg.toLocaleString();
+        t.style.left = "50%"; t.style.top = "40%";
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 600);
     }
 
-    // LISTENER UTAMA (Sync Hit & Ledakan)
+    // LISTENER (Satu-satunya koneksi ke Firebase)
     onSnapshot(globalRef, (snap) => {
-        if(snap.exists()) {
-            const d = snap.data();
-            const earthImg = document.getElementById('targetImg');
-            document.getElementById('globalPop').innerText = d.population.toLocaleString('id-ID');
+        if(!snap.exists()) return;
+        const d = snap.data();
+        const earthImg = document.getElementById('targetImg');
+        
+        // Update Angka Populasi
+        document.getElementById('globalPop').innerText = d.population.toLocaleString('id-ID');
 
-            // 1. ANIMASI GIGIT SINKRON (Muncul di semua perangkat)
-            if (d.last_hit && d.last_hit !== localLastHit) {
-                localLastHit = d.last_hit;
-                earthImg.classList.add('shake-hit');
-                document.body.style.backgroundColor = "#300";
-                if(d.last_dmg) spawnDamage(d.last_dmg);
-                
-                setTimeout(() => {
-                    earthImg.classList.remove('shake-hit');
-                    document.body.style.backgroundColor = "#050505";
-                }, 150);
+        // 1. SYNC ANIMASI HIT (Muncul di semua perangkat)
+        if (d.last_hit && d.last_hit !== localLastHit) {
+            localLastHit = d.last_hit;
+            earthImg.classList.add('shake-hit');
+            document.body.style.backgroundColor = "#300";
+            spawnDmg(d.last_dmg || 0);
+            
+            // Tampilkan Teks Riwayat Sementara
+            if(d.last_name) {
+                const feed = document.getElementById('attackFeed');
+                feed.innerHTML = `<div class="feed-entry">💀 <b>${d.last_name}</b> baru saja menggigit!</div>`;
+                // Hilangkan teks dari layar setelah 3 detik (di sisi klien saja)
+                setTimeout(() => { feed.innerHTML = ""; }, 3000);
             }
 
-            // 2. LEDAKAN SINKRON
-            if (d.population <= 0 && !isExploding) {
-                isExploding = true;
-                earthImg.classList.add('earth-explode');
-                document.body.style.backgroundColor = "white"; 
-                document.getElementById('sndExplode').play();
-                if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
+            setTimeout(() => {
+                earthImg.classList.remove('shake-hit');
+                document.body.style.backgroundColor = "#050505";
+            }, 100);
+        }
 
-                setTimeout(() => {
-                    updateDoc(globalRef, { population: 8000000000, last_hit: 0 });
-                    earthImg.classList.remove('earth-explode');
-                    document.body.style.backgroundColor = "#050505";
-                    isExploding = false;
-                    alert("BUMI HANCUR! Memulai invasi baru...");
-                }, 3000);
-            }
+        // 2. SYNC LEDAKAN
+        if (d.population <= 0 && !isExploding) {
+            isExploding = true;
+            earthImg.classList.add('earth-explode');
+            document.body.style.backgroundColor = "white";
+            setTimeout(() => {
+                updateDoc(globalRef, { 
+                    population: 8000000000, 
+                    last_hit: 0, 
+                    last_name: "", 
+                    last_dmg: 0 
+                });
+                earthImg.classList.remove('earth-explode');
+                document.body.style.backgroundColor = "#050505";
+                isExploding = false;
+            }, 2000);
         }
     });
 
-    // Feed Log Serangan
-    const qFeed = query(collection(db, "logs"), orderBy("time", "desc"), limit(4));
-    onSnapshot(qFeed, (snap) => {
-        const feedEl = document.getElementById('attackFeed');
-        feedEl.innerHTML = "";
-        snap.forEach(doc => {
-            const log = doc.data();
-            feedEl.innerHTML += `<div class="feed-entry">🔥 <b>${log.name}</b> gigit <b>-${log.dmg.toLocaleString()}</b></div>`;
-        });
-    });
-
-    // Fungsi Klik Serang
+    // FUNGSI GIGIT (Menimpa data, bukan menambah)
     document.getElementById('raidBtn').onclick = async () => {
         if (isExploding) return;
+        
         try {
-            // Update DB memicu onSnapshot di semua perangkat
+            // Kita cuma UPDATE 1 dokumen yang sama terus-menerus
+            // Ini tidak akan bikin Firebase penuh karena filenya cuma satu
             await updateDoc(globalRef, { 
                 population: increment(-myPower),
                 last_hit: Date.now(),
-                last_dmg: myPower
+                last_dmg: myPower,
+                last_name: predatorName
             });
-            await addDoc(collection(db, "logs"), {
-                name: predatorName,
-                dmg: myPower,
-                time: serverTimestamp()
-            });
-        } catch (e) { console.log("Lagi rame!"); }
+
+            // TRICK: Hapus jejak nama di Firebase setelah 5 detik
+            // Biar dokumen 'earth' kembali bersih/kosong namanya
+            setTimeout(async () => {
+                await updateDoc(globalRef, { last_name: "" });
+            }, 5000);
+
+        } catch (e) { console.error("Koneksi sibuk!"); }
     };
 </script>
+
 </body>
 </html>
