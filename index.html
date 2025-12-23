@@ -86,9 +86,20 @@
 
 <button class="btn-attack" id="raidBtn">GIGIT!</button>
 <div id="attackFeed"></div>
-<a href="https://faqih-roda.vercel.app/" class="btn-back" id="navSolo">← KEMBALI KE SOLO</a>
 
 <script type="module">
+    // ... (kode lainnya tetap sama)
+
+    // Update bagian handler tombol navigasi di paling bawah script
+    document.getElementById('navSolo').onclick = (e) => {
+        e.preventDefault(); // Tahan dulu biar suaranya bunyi
+        playActionWithMute(sfxNav); // Putar suara klik
+        setTimeout(() => { 
+            window.location.href = 'https://faqih-roda.vercel.app/'; 
+        }, 400); // Pindah link setelah 0.4 detik
+    };
+
+    // ... 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
     import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
