@@ -3,28 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>World Raid - Edisi Hemat Database</title>
+    <title>World Raid - Predator Online</title>
     <style>
         :root { --red: #ff3333; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; text-align: center; overflow: hidden; transition: background 0.2s; }
-        .header { background: linear-gradient(to bottom, #500, #000); padding: 15px; border-bottom: 2px solid var(--red); }
-        #globalPop { font-size: 2.5rem; color: var(--red); font-weight: 900; text-shadow: 0 0 10px red; }
-        .stage { height: 260px; display: flex; align-items: center; justify-content: center; position: relative; }
-        #targetImg { width: 180px; height: 180px; border-radius: 50%; transition: transform 0.05s; z-index: 5; }
-        .btn-attack { width: 80%; padding: 18px; font-size: 1.5rem; font-weight: 900; background: var(--red); color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px #600; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Riwayat Singkat */
-        #attackFeed { height: 80px; margin: 15px auto; width: 90%; font-size: 0.8rem; color: #aaa; overflow: hidden; }
-        .feed-entry { padding: 3px 0; animation: fadeIn 0.3s forwards; }
+        body { 
+            margin: 0; background: var(--bg); color: white; 
+            font-family: sans-serif; text-align: center; 
+            overflow: hidden; transition: background 0.2s; 
+        }
+
+        .header { 
+            background: linear-gradient(to bottom, #500, #000); 
+            padding: 15px; border-bottom: 2px solid var(--red); 
+        }
+
+        #globalPop { 
+            font-size: 2.5rem; color: var(--red); 
+            font-weight: 900; text-shadow: 0 0 10px red; 
+        }
+
+        .stage { 
+            height: 260px; display: flex; align-items: center; 
+            justify-content: center; position: relative; 
+        }
+
+        #targetImg { 
+            width: 180px; height: 180px; border-radius: 50%; 
+            transition: transform 0.05s; z-index: 5; 
+        }
+
+        .btn-attack { 
+            width: 80%; padding: 18px; font-size: 1.5rem; 
+            font-weight: 900; background: var(--red); color: white; 
+            border: none; border-radius: 50px; cursor: pointer; 
+            box-shadow: 0 5px #600; outline: none; transition: 0.1s;
+        }
+        .btn-attack:active { transform: translateY(4px); box-shadow: 0 2px #300; }
         
-        /* Animasi */
+        /* RIWAYAT STACK SYSTEM */
+        #attackFeed { 
+            height: 100px; margin: 10px auto; width: 90%; 
+            font-size: 0.8rem; color: #aaa; overflow: hidden; 
+            display: flex; flex-direction: column-reverse; 
+        }
+
+        .feed-entry { 
+            padding: 2px 0; animation: fadeIn 0.2s forwards; 
+            transition: opacity 0.5s ease; 
+        }
+
+        .fade-out { opacity: 0; }
+
+        /* ANIMASI */
         .shake-hit { animation: shake 0.1s infinite; filter: brightness(1.5) sepia(1); }
         @keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(2px, -2px); } }
+        
         .earth-explode { animation: explode 1.5s forwards; }
         @keyframes explode { 0% { transform: scale(1); } 50% { transform: scale(1.5); filter: brightness(10); } 100% { transform: scale(0); opacity: 0; } }
+        
         .dmg-text { position: absolute; color: var(--red); font-weight: 900; animation: float 0.6s forwards; pointer-events: none; }
         @keyframes float { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-80px); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .btn-back {
+            display: inline-block; margin-top: 10px; color: #555;
+            text-decoration: none; font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -40,6 +86,7 @@
 
 <button class="btn-attack" id="raidBtn">GIGIT!</button>
 <div id="attackFeed"></div>
+<a href="https://faqih-roda.vercel.app/" class="btn-back" id="navSolo">← KEMBALI KE SOLO</a>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -57,48 +104,70 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // --- AUDIO SYSTEM (EXCLUSIVE MULTIPLAYER) ---
+    const sfxAttack = new Audio('https://assets.mixkit.co/active_storage/sfx/2296/2296-preview.mp3');
+    const sfxNav = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    const bgmMulti = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/theme_01.mp3');
+    bgmMulti.loop = true;
+    bgmMulti.volume = 0.5;
+
+    let muteTimeout;
+    function playActionWithMute(sfx) {
+        sfx.currentTime = 0;
+        sfx.play();
+        bgmMulti.muted = true; 
+        clearTimeout(muteTimeout);
+        muteTimeout = setTimeout(() => { bgmMulti.muted = false; }, 500);
+    }
+
+    document.addEventListener('click', () => { if (bgmMulti.paused) bgmMulti.play(); }, { once: true });
+
+    // --- GAME LOGIC ---
     const predatorName = localStorage.getItem('solo_uid') || "Predator";
     const myPower = parseInt(localStorage.getItem('last_power')) || 1;
     let localLastHit = 0;
     let isExploding = false;
 
-    // Tampilkan Nama & Power
     document.getElementById('pName').innerText = predatorName;
     document.getElementById('pPower').innerText = myPower.toLocaleString();
 
     const globalRef = doc(db, "world", "earth");
 
-    // Fungsi Munculkan Angka Melayang
     function spawnDmg(dmg) {
         const t = document.createElement('div');
         t.className = 'dmg-text'; t.innerText = "-"+dmg.toLocaleString();
-        t.style.left = "50%"; t.style.top = "40%";
-        document.body.appendChild(t);
+        t.style.left = (40 + Math.random() * 20) + "%"; 
+        t.style.top = "40%";
+        document.getElementById('stage').appendChild(t);
         setTimeout(() => t.remove(), 600);
     }
 
-    // LISTENER (Satu-satunya koneksi ke Firebase)
     onSnapshot(globalRef, (snap) => {
         if(!snap.exists()) return;
         const d = snap.data();
         const earthImg = document.getElementById('targetImg');
         
-        // Update Angka Populasi
         document.getElementById('globalPop').innerText = d.population.toLocaleString('id-ID');
 
-        // 1. SYNC ANIMASI HIT (Muncul di semua perangkat)
         if (d.last_hit && d.last_hit !== localLastHit) {
             localLastHit = d.last_hit;
             earthImg.classList.add('shake-hit');
             document.body.style.backgroundColor = "#300";
             spawnDmg(d.last_dmg || 0);
             
-            // Tampilkan Teks Riwayat Sementara
+            // FEED RIWAYAT TUMPukan (STACK)
             if(d.last_name) {
                 const feed = document.getElementById('attackFeed');
-                feed.innerHTML = `<div class="feed-entry">💀 <b>${d.last_name}</b> baru saja menggigit!</div>`;
-                // Hilangkan teks dari layar setelah 3 detik (di sisi klien saja)
-                setTimeout(() => { feed.innerHTML = ""; }, 5000);
+                const newEntry = document.createElement('div');
+                newEntry.className = 'feed-entry';
+                newEntry.innerHTML = `💀 <b>${d.last_name}</b> menggigit!`;
+                feed.appendChild(newEntry);
+
+                // Hilangkan baris ini saja setelah 3 detik
+                setTimeout(() => {
+                    newEntry.classList.add('fade-out');
+                    setTimeout(() => newEntry.remove(), 500);
+                }, 3000);
             }
 
             setTimeout(() => {
@@ -107,7 +176,6 @@
             }, 100);
         }
 
-        // 2. SYNC LEDAKAN
         if (d.population <= 0 && !isExploding) {
             isExploding = true;
             earthImg.classList.add('earth-explode');
@@ -115,9 +183,7 @@
             setTimeout(() => {
                 updateDoc(globalRef, { 
                     population: 8000000000, 
-                    last_hit: 0, 
-                    last_name: "", 
-                    last_dmg: 0 
+                    last_hit: 0, last_name: "", last_dmg: 0 
                 });
                 earthImg.classList.remove('earth-explode');
                 document.body.style.backgroundColor = "#050505";
@@ -126,27 +192,27 @@
         }
     });
 
-    // FUNGSI GIGIT (Menimpa data, bukan menambah)
     document.getElementById('raidBtn').onclick = async () => {
         if (isExploding) return;
+        playActionWithMute(sfxAttack);
+        if(navigator.vibrate) navigator.vibrate(25);
         
         try {
-            // Kita cuma UPDATE 1 dokumen yang sama terus-menerus
-            // Ini tidak akan bikin Firebase penuh karena filenya cuma satu
             await updateDoc(globalRef, { 
                 population: increment(-myPower),
                 last_hit: Date.now(),
                 last_dmg: myPower,
                 last_name: predatorName
             });
-
-            // TRICK: Hapus jejak nama di Firebase setelah 5 detik
-            // Biar dokumen 'earth' kembali bersih/kosong namanya
-            setTimeout(async () => {
-                await updateDoc(globalRef, { last_name: "" });
-            }, 5000);
-
+            // Self-cleaning jejak di database
+            setTimeout(() => { updateDoc(globalRef, { last_name: "" }); }, 5000);
         } catch (e) { console.error("Koneksi sibuk!"); }
+    };
+
+    document.getElementById('navSolo').onclick = (e) => {
+        e.preventDefault();
+        playActionWithMute(sfxNav);
+        setTimeout(() => { window.location.href = 'index.html'; }, 400);
     };
 </script>
 
