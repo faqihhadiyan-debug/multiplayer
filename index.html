@@ -3,53 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>World Raid - Live Feed</title>
+    <title>World Raid - Predator Bumi</title>
     <style>
         :root { --red: #ff3333; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; }
+        body { 
+            margin: 0; 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            text-align: center; 
+            overflow: hidden; 
+            transition: background 0.1s;
+        }
         
-        .header { background: linear-gradient(to bottom, #500, #000); padding: 25px 10px; border-bottom: 2px solid var(--red); }
-        #globalPop { font-size: 3rem; color: var(--red); font-weight: 900; text-shadow: 0 0 15px red; margin: 10px 0; }
+        .header { background: linear-gradient(to bottom, #500, #000); padding: 20px 10px; border-bottom: 2px solid var(--red); }
+        #globalPop { font-size: 2.8rem; color: var(--red); font-weight: 900; text-shadow: 0 0 15px red; margin: 5px 0; transition: transform 0.05s; }
         
-        #targetImg { width: 150px; height: 150px; border-radius: 50%; margin: 20px auto; display: block; transition: transform 0.05s; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-        #targetImg:active { transform: scale(0.9); }
+        /* Area Bumi */
+        .stage { height: 260px; display: flex; align-items: center; justify-content: center; position: relative; }
+        #targetImg { 
+            width: 180px; 
+            height: 180px; 
+            border-radius: 50%; 
+            transition: transform 0.05s, filter 0.3s; 
+            filter: drop-shadow(0 0 20px rgba(255,0,0,0.2));
+            z-index: 5;
+        }
 
-        .btn-attack { width: 80%; max-width: 300px; padding: 20px; font-size: 1.5rem; font-weight: 900; background: var(--red); color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 6px #600; outline: none; }
+        /* Tombol Serang */
+        .btn-attack { 
+            width: 85%; 
+            max-width: 300px; 
+            padding: 18px; 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            background: var(--red); 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            box-shadow: 0 6px #600; 
+            outline: none; 
+            margin-bottom: 10px;
+        }
         .btn-attack:active { transform: translateY(3px); box-shadow: 0 3px #200; }
 
-        /* Style untuk Riwayat Serangan (Live Feed) */
-        .feed-container { background: #111; margin: 25px auto; width: 90%; max-width: 380px; border-radius: 15px; border: 1px solid #333; overflow: hidden; }
-        .feed-title { background: #222; padding: 8px; font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        #attackFeed { height: 150px; overflow-y: hidden; padding: 10px; display: flex; flex-direction: column; }
-        
-        .feed-entry { font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid #1a1a1a; text-align: left; animation: fadeIn 0.3s ease; }
+        /* Feed Riwayat */
+        .feed-container { background: #111; margin: 10px auto; width: 90%; max-width: 380px; border-radius: 15px; border: 1px solid #333; overflow: hidden; }
+        .feed-title { background: #222; padding: 6px; font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        #attackFeed { height: 110px; overflow-y: hidden; padding: 10px; display: flex; flex-direction: column; }
+        .feed-entry { font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid #1a1a1a; text-align: left; animation: fadeIn 0.3s ease; }
         .feed-entry b { color: var(--red); }
-        .feed-entry i { color: #555; font-size: 0.7rem; float: right; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .back-btn { display: inline-block; margin: 20px 0; color: #666; text-decoration: none; font-size: 0.8rem; }
-        
+
+        /* --- ANIMASI --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; } }
+
+        .shake-damage { animation: shake-fast 0.15s infinite; filter: sepia(1) saturate(5) hue-rotate(-50deg) !important; }
+        @keyframes shake-fast {
+            0% { transform: translate(3px, 3px) rotate(0deg); }
+            33% { transform: translate(-3px, -2px) rotate(-1deg); }
+            66% { transform: translate(3px, -3px) rotate(1deg); }
+            100% { transform: translate(-3px, 2px) rotate(0deg); }
+        }
+
+        .earth-explode { animation: explode-out 1.5s forwards !important; }
+        @keyframes explode-out {
+            0% { transform: scale(1); filter: brightness(1); }
+            30% { transform: scale(1.4); filter: brightness(10) contrast(0); }
+            100% { transform: scale(0); opacity: 0; filter: brightness(20) blur(30px); }
+        }
+
+        .dmg-text {
+            position: absolute; color: #ff3333; font-weight: 900; font-size: 1.8rem;
+            pointer-events: none; animation: float-up 0.8s ease-out forwards;
+            z-index: 100; text-shadow: 2px 2px 0px black;
+        }
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(1.5); }
+        }
+
+        .back-link { display: inline-block; margin: 10px 0; color: #555; text-decoration: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <small>POPULASI DUNIA SAAT INI</small>
+    <small>TARGET GLOBAL</small>
     <div id="globalPop">8.000.000.000</div>
-    <div style="font-size: 0.8rem; color: #888;">Predator: <b id="pName">---</b> | Power: <b id="pPower" style="color:#0f0">1</b></div>
+    <div style="font-size: 0.75rem; color: #888;">
+        Predator: <b id="pName" style="color:white">---</b> | Power: <b id="pPower" style="color:#0f0">1</b>
+    </div>
 </div>
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png" id="targetImg">
+<div class="stage" id="stage">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png" id="targetImg">
+</div>
 
-<button class="btn-attack" id="raidBtn">SERANG!</button>
+<button class="btn-attack" id="raidBtn">GIGIT BUMI!</button>
 
 <div class="feed-container">
-    <div class="feed-title">Riwayat Serangan Global</div>
+    <div class="feed-title">Live Attack Feed</div>
     <div id="attackFeed"></div>
 </div>
 
-<a href="https://faqih-roda.vercel.app/" class="back-btn">← KEMBALI KE SOLO</a>
+<a href="https://faqih-roda.vercel.app/" class="back-link">← KEMBALI KE MENU</a>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -67,8 +125,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Ambil Data dari LocalStorage
-    const predatorName = localStorage.getItem('solo_uid') || "Anonymous";
+    const predatorName = localStorage.getItem('solo_uid') || "Unknown_Predator";
     const myPower = parseInt(localStorage.getItem('last_power')) || 1;
 
     document.getElementById('pName').innerText = predatorName;
@@ -76,14 +133,41 @@
 
     const globalRef = doc(db, "world", "earth");
 
-    // 1. Monitor Populasi Global
+    // 1. Floating Damage Effect
+    function spawnDamage(dmg) {
+        const text = document.createElement('div');
+        text.className = 'dmg-text';
+        text.innerText = "-" + dmg.toLocaleString();
+        const stage = document.getElementById('stage').getBoundingClientRect();
+        text.style.left = (window.innerWidth / 2 + (Math.random() * 80 - 40)) + "px";
+        text.style.top = (stage.top + 100) + "px";
+        document.body.appendChild(text);
+        setTimeout(() => text.remove(), 800);
+    }
+
+    // 2. Real-time Population & Destruction Logic
     onSnapshot(globalRef, (snap) => {
         if(snap.exists()) {
-            document.getElementById('globalPop').innerText = snap.data().population.toLocaleString('id-ID');
+            const pop = snap.data().population;
+            const displayEl = document.getElementById('globalPop');
+            const earthImg = document.getElementById('targetImg');
+            
+            displayEl.innerText = pop.toLocaleString('id-ID');
+
+            // Efek hancur sadis jika 0
+            if (pop <= 0) {
+                earthImg.classList.add('earth-explode');
+                document.body.style.backgroundColor = "white"; 
+                setTimeout(() => {
+                    updateDoc(globalRef, { population: 8000000000 });
+                    earthImg.classList.remove('earth-explode');
+                    document.body.style.backgroundColor = "#050505";
+                }, 2000);
+            }
         }
     });
 
-    // 2. Monitor Live Feed (Riwayat Serangan)
+    // 3. Monitor Feed
     const qFeed = query(collection(db, "logs"), orderBy("time", "desc"), limit(5));
     onSnapshot(qFeed, (snap) => {
         const feedEl = document.getElementById('attackFeed');
@@ -92,26 +176,38 @@
             const log = d.data();
             const div = document.createElement('div');
             div.className = 'feed-entry';
-            div.innerHTML = `<span>⚡ <b>${log.name}</b> menyerang <b>-${log.dmg.toLocaleString()}</b></span>`;
+            div.innerHTML = `<span>🔥 <b>${log.name}</b> gigit <b>-${log.dmg.toLocaleString()}</b></span>`;
             feedEl.appendChild(div);
         });
     });
 
-    // 3. Fungsi Serang
+    // 4. Attack Function
     document.getElementById('raidBtn').onclick = async () => {
-        if(navigator.vibrate) navigator.vibrate(30);
+        const earthImg = document.getElementById('targetImg');
+        const popEl = document.getElementById('globalPop');
+
+        // Visual Feedback
+        earthImg.classList.add('shake-damage');
+        popEl.style.transform = "scale(1.1)";
+        document.body.style.backgroundColor = "#200";
+        spawnDamage(myPower);
         
+        if(navigator.vibrate) navigator.vibrate([40, 20, 40]);
+
+        setTimeout(() => {
+            earthImg.classList.remove('shake-damage');
+            popEl.style.transform = "scale(1)";
+            document.body.style.backgroundColor = "#050505";
+        }, 150);
+
         try {
-            // Kurangi populasi global
             updateDoc(globalRef, { population: increment(-myPower) });
-            
-            // Kirim riwayat serangan ke koleksi 'logs'
             addDoc(collection(db, "logs"), {
                 name: predatorName,
                 dmg: myPower,
                 time: serverTimestamp()
             });
-        } catch (e) { console.error("Gagal menyerang"); }
+        } catch (e) { console.error("Busy!"); }
     };
 </script>
 </body>
