@@ -42,26 +42,20 @@
         }
         .btn-attack:active { transform: translateY(4px); box-shadow: 0 2px #300; }
         
-        /* RIWAYAT STACK SYSTEM */
         #attackFeed { 
             height: 100px; margin: 10px auto; width: 90%; 
             font-size: 0.8rem; color: #aaa; overflow: hidden; 
             display: flex; flex-direction: column-reverse; 
         }
 
-        .feed-entry { 
-            padding: 2px 0; animation: fadeIn 0.2s forwards; 
-            transition: opacity 0.5s ease; 
-        }
-
+        .feed-entry { padding: 2px 0; animation: fadeIn 0.2s forwards; }
         .fade-out { opacity: 0; }
 
-        /* ANIMASI */
         .shake-hit { animation: shake 0.1s infinite; filter: brightness(1.5) sepia(1); }
         @keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(2px, -2px); } }
         
         .earth-explode { animation: explode 1.5s forwards; }
-        @keyframes explode { 0% { transform: scale(1); } 50% { transform: scale(1.5); filter: brightness(10); } 100% { transform: scale(0); opacity: 0; } }
+        @keyframes explode { 0% { transform: scale(1.5); filter: brightness(10); opacity: 0; } }
         
         .dmg-text { position: absolute; color: var(--red); font-weight: 900; animation: float 0.6s forwards; pointer-events: none; }
         @keyframes float { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-80px); } }
@@ -70,16 +64,17 @@
         .btn-back {
             display: inline-block; margin-top: 10px; color: #777;
             text-decoration: none; font-size: 0.8rem; border: 1px solid #333;
-            padding: 8px 15px; border-radius: 20px; transition: 0.2s;
+            padding: 8px 15px; border-radius: 20px;
         }
-        .btn-back:active { background: #222; color: #fff; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div id="globalPop">8.000.000.000</div>
-    <div style="font-size: 0.7rem; color: #777;"><b id="pName">---</b> | Power: <b id="pPower">1</b></div>
+    <div style="font-size: 0.7rem; color: #777;">
+        👾 <b id="pName">Memuat Akun...</b> | ⚔️ Power: <b id="pPower">1</b>
+    </div>
 </div>
 
 <div class="stage" id="stage">
@@ -89,50 +84,50 @@
 <button class="btn-attack" id="raidBtn">TELAN</button>
 <div id="attackFeed"></div>
 
-<a href="https://faqih-roda.vercel.app/" class="btn-back" id="navSolo">← KEMBALI KE MODE SOLO Player</a>
+<a href="https://faqih-roda.vercel.app/" class="btn-back" id="navSolo">← KEMBALI KE MODE SOLO</a>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
+    // --- PAKAI CONFIG SOLO SUPAYA DATABASE NYAMBUNG ---
     const firebaseConfig = {
-        apiKey: "AIzaSyDF7Eg437poCL4J4OShMFtm2N6GQtnu01w",
-        authDomain: "multiplayer-5e98b.firebaseapp.com",
-        projectId: "multiplayer-5e98b",
-        storageBucket: "multiplayer-5e98b.firebasestorage.app",
-        messagingSenderId: "549080338588",
-        appId: "1:549080338588:web:bac83f2ffbc77f47f9dd59"
+        apiKey: "AIzaSyD3tna4rUSr_FH0eb08aI3AX3Z-fVcqaj8",
+        authDomain: "fruitsmasmaster.firebaseapp.com",
+        projectId: "fruitsmasmaster",
+        storageBucket: "fruitsmasmaster.firebasestorage.app",
+        messagingSenderId: "673530855742",
+        appId: "1:673530855742:web:ac1395bda6c68f764cac6f"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- AUDIO SYSTEM (EXCLUSIVE MULTIPLAYER) ---
     const sfxAttack = new Audio('https://assets.mixkit.co/active_storage/sfx/2296/2296-preview.mp3');
-    const sfxNav = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
     const bgmMulti = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/theme_01.mp3');
-    bgmMulti.loop = true;
-    bgmMulti.volume = 0.5;
-
-    let muteTimeout;
-    function playActionWithMute(sfx) {
-        sfx.currentTime = 0;
-        sfx.play();
-        bgmMulti.muted = true; 
-        clearTimeout(muteTimeout);
-        muteTimeout = setTimeout(() => { bgmMulti.muted = false; }, 500);
-    }
+    bgmMulti.loop = true; bgmMulti.volume = 0.5;
 
     document.addEventListener('click', () => { if (bgmMulti.paused) bgmMulti.play(); }, { once: true });
 
-    // --- GAME LOGIC ---
-    const predatorName = localStorage.getItem('solo_uid') || "Predator";
-    const myPower = parseInt(localStorage.getItem('last_power')) || 1;
-    let localLastHit = 0;
+    // --- SYNC AKUN SOLO KE MULTIPLAYER ---
+    const deviceId = localStorage.getItem('solo_uid');
+    let myPower = 1;
     let isExploding = false;
 
-    document.getElementById('pName').innerText = predatorName;
-    document.getElementById('pPower').innerText = myPower.toLocaleString();
+    if (!deviceId) {
+        alert("Main mode Solo dulu buat dapet akun!");
+        window.location.href = "https://faqih-roda.vercel.app/";
+    } else {
+        document.getElementById('pName').innerText = deviceId;
+        // Ambil data power langsung dari koleksi 'players' mode Solo
+        const playerRef = doc(db, "players", deviceId);
+        onSnapshot(playerRef, (snap) => {
+            if(snap.exists()) {
+                myPower = snap.data().clickPower || 1;
+                document.getElementById('pPower').innerText = myPower.toLocaleString();
+            }
+        });
+    }
 
     const globalRef = doc(db, "world", "earth");
 
@@ -149,29 +144,19 @@
         if(!snap.exists()) return;
         const d = snap.data();
         const earthImg = document.getElementById('targetImg');
-        
         document.getElementById('globalPop').innerText = d.population.toLocaleString('id-ID');
 
-        if (d.last_hit && d.last_hit !== localLastHit) {
-            localLastHit = d.last_hit;
+        if (d.last_hit) {
             earthImg.classList.add('shake-hit');
             document.body.style.backgroundColor = "#300";
             spawnDmg(d.last_dmg || 0);
             
-            // FEED RIWAYAT TUMPukan (STACK)
-            if(d.last_name) {
-                const feed = document.getElementById('attackFeed');
-                const newEntry = document.createElement('div');
-                newEntry.className = 'feed-entry';
-                newEntry.innerHTML = `💀 <b>${d.last_name}</b> menelan`;
-                feed.appendChild(newEntry);
-
-                // Hilangkan baris ini saja setelah 3 detik
-                setTimeout(() => {
-                    newEntry.classList.add('fade-out');
-                    setTimeout(() => newEntry.remove(), 500);
-                }, 3000);
-            }
+            const feed = document.getElementById('attackFeed');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'feed-entry';
+            newEntry.innerHTML = `💀 <b>${d.last_name}</b> menelan`;
+            feed.appendChild(newEntry);
+            setTimeout(() => newEntry.remove(), 3000);
 
             setTimeout(() => {
                 earthImg.classList.remove('shake-hit');
@@ -182,46 +167,24 @@
         if (d.population <= 0 && !isExploding) {
             isExploding = true;
             earthImg.classList.add('earth-explode');
-            document.body.style.backgroundColor = "white";
             setTimeout(() => {
-                updateDoc(globalRef, { 
-                    population: 8000000000, 
-                    last_hit: 0, last_name: "", last_dmg: 0 
-                });
+                updateDoc(globalRef, { population: 8000000000, last_hit: 0 });
                 earthImg.classList.remove('earth-explode');
-                document.body.style.backgroundColor = "#050505";
                 isExploding = false;
-            }, 2000);
+            }, 1000);
         }
     });
 
     document.getElementById('raidBtn').onclick = async () => {
         if (isExploding) return;
-        playActionWithMute(sfxAttack);
-        if(navigator.vibrate) navigator.vibrate(25);
-        
-        try {
-            await updateDoc(globalRef, { 
-                population: increment(-myPower),
-                last_hit: Date.now(),
-                last_dmg: myPower,
-                last_name: predatorName
-            });
-            // Self-cleaning jejak nama di database setelah 5 detik
-            setTimeout(() => { updateDoc(globalRef, { last_name: "" }); }, 5000);
-        } catch (e) { console.error("Koneksi sibuk!"); }
-    };
-
-    // NAVIGASI KE VERCEL
-    document.getElementById('navSolo').onclick = (e) => {
-        e.preventDefault();
-        playActionWithMute(sfxNav);
-        setTimeout(() => { 
-            window.location.href = 'https://faqih-roda.vercel.app/'; 
-        }, 400);
+        sfxAttack.play();
+        await updateDoc(globalRef, { 
+            population: increment(-myPower),
+            last_hit: Date.now(),
+            last_dmg: myPower,
+            last_name: deviceId
+        });
     };
 </script>
-
 </body>
-    </html>
-        
+</html>
